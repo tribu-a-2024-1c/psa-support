@@ -1,7 +1,7 @@
 services:
   mysql:
     image: 'mysql:8.0.36'
-    container_name: 'mysql'
+    container_name: 'mysql-support'
     restart: 'always'
     environment:
       - 'MYSQL_ROOT_PASSWORD=support'
@@ -11,12 +11,12 @@ services:
     ports:
       - '3307:3306'
     volumes:
-      - 'db-data:/var/lib/mysql'
+      - 'db-data-support:/var/lib/mysql'
     networks:
       - 'psa-network'
 
 volumes:
-  db-data: { }
+  db-data-support: { }
 
 networks:
     psa-network:

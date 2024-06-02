@@ -12,6 +12,12 @@ services:
       - '3306:3306'
     volumes:
       - 'db-data:/var/lib/mysql'
+    networks:
+      - 'psa-network'
 
 volumes:
   db-data: { }
+
+networks:
+    psa-network:
+      external: true

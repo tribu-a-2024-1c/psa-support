@@ -18,6 +18,7 @@ services:
 volumes:
   db-data-support: { }
 
+# docker network create psa-network
 networks:
     psa-network:
       external: true

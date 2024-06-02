@@ -21,13 +21,19 @@ To set up the PSA Support Management API on your local environment, follow these
    cd psa-support
    ```
 
-2. Install dependencies and build the project:
+2. Create a docker network:
+
+   ```bash
+   docker network create psa-network
+   ```
+
+3. Install dependencies and build the project:
 
    ```bash
    ./gradlew build
    ```
 
-3. Start the Spring Boot application:
+4. Start the Spring Boot application:
 
    ```bash
    ./gradlew bootRun
@@ -59,18 +65,18 @@ projects.api.url=${API_PROJECTS_URL:http://localhost:8080}
 
 ### Tickets
 
-- **Get all tickets**: `GET /api/tickets`
-- **Get a ticket by ID**: `GET /api/tickets/{id}`
-- **Create a new ticket**: `POST /api/tickets`
-- **Update a ticket**: `PUT /api/tickets/{id}`
-- **Delete a ticket**: `DELETE /api/tickets/{id}`
+- **Get all tickets**: `GET /tickets`
+- **Get a ticket by ID**: `GET /tickets/{id}`
+- **Create a new ticket**: `POST /tickets`
+- **Update a ticket**: `PUT /tickets/{id}`
+- **Delete a ticket**: `DELETE /tickets/{id}`
 
 ### Example Requests
 
 - **Create a Ticket**
 
   ```bash
-  curl -X POST http://localhost:8080/api/tickets \
+  curl -X POST http://localhost:8081/tickets \
   -H "Content-Type: application/json" \
   -d '{"title": "New Support Ticket", "description": "Issue details here"}'
   ```

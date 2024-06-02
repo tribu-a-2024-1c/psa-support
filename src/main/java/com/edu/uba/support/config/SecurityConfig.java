@@ -1,4 +1,4 @@
-package com.edu.uba.projects.config;
+package com.edu.uba.support.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

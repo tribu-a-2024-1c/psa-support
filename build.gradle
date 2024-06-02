@@ -6,7 +6,7 @@ plugins {
 
 group = 'com.edu.uba'
 version = '0.0.1-SNAPSHOT'
-description = 'Project HTTP RESTFUL API'
+description = 'Support HTTP RESTFUL API'
 
 java {
     sourceCompatibility = '21'

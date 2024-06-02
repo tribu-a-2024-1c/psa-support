@@ -1,25 +1,24 @@
-# PSA Projects Management API
+# PSA Support Management API
 
-PSA Projects Management API is a RESTful service designed to manage projects, client relations, and resource allocations
-within the PSA platform. This API is built using Spring Boot and integrates seamlessly with other components of the PSA
-system to provide a robust and scalable backend solution for project management tasks.
+PSA Support Management API is a RESTful service designed to manage support tickets, client interactions, and resource
+allocations within the PSA platform. This API is built using Spring Boot and integrates seamlessly with other components
+of the PSA system to provide a robust and scalable backend solution for support management tasks.
 
 ## 🌟 Features
 
-- **Project Management**: Create, update, delete, and retrieve project information.
-- **Resource Allocation**: Assign resources to projects efficiently.
-- **Client Relations**: Manage client data and link clients to projects.
-- **Adoption Workflow**: Handle the adoption process for projects, integrating with the support service.
+- **Ticket Management**: Create, update, delete, and retrieve support ticket information.
+- **Client Interactions**: Manage client data and link clients to support tickets.
+- **Resource Allocation**: Assign resources to support tickets efficiently.
 
 ## 🛠️ Installation
 
-To set up the PSA Projects Management API on your local environment, follow these steps:
+To set up the PSA Support Management API on your local environment, follow these steps:
 
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/tribu-a-2024-1c/psa-projects
-   cd psa-projects
+   git clone https://github.com/tribu-a-2024-1c/psa-support
+   cd psa-support
    ```
 
 2. Install dependencies and build the project:
@@ -41,41 +40,42 @@ Configure environment variables in `application.properties` or via environment v
 - `spring.datasource.url`: JDBC URL for the database connection.
 - `spring.datasource.username`: Database username.
 - `spring.datasource.password`: Database password.
-- `support.api.ur`: URL to the Owner Service for project adoption workflows. Default is `http://localhost:8081`.
+- `projects.api.url`: URL to the Projects Service for support workflows. Default is `http://localhost:8081`.
 
 Example `application.properties`:
 
 ```properties
-spring.datasource.url=jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/projects
-spring.datasource.username=${MYSQL_USER:projects}
-spring.datasource.password=${MYSQL_PASSWORD:projects}
+spring.datasource.url=jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3307}/${MYSQL_DATABASE:support}
+spring.datasource.username=${MYSQL_USER:support}
+spring.datasource.password=${MYSQL_PASSWORD:support}
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
-support.api.url=${OWNERS_SERVICE_URL:http://localhost:8081}
+projects.api.url=${API_PROJECTS_URL:http://localhost:8080}
 ```
 
 ## 📖 API Endpoints
 
-### Projects
+### Tickets
 
-- **Get all projects**: `GET /api/projects`
-- **Get a project by ID**: `GET /api/projects/{id}`
-- **Create a new project**: `POST /api/projects`
-- **Update a project**: `PUT /api/projects/{id}`
-- **Delete a project**: `DELETE /api/projects/{id}`
+- **Get all tickets**: `GET /api/tickets`
+- **Get a ticket by ID**: `GET /api/tickets/{id}`
+- **Create a new ticket**: `POST /api/tickets`
+- **Update a ticket**: `PUT /api/tickets/{id}`
+- **Delete a ticket**: `DELETE /api/tickets/{id}`
 
 ### Example Requests
 
-- **Create a Project**
+- **Create a Ticket**
 
   ```bash
-  curl -X POST http://localhost:8080/api/projects \
+  curl -X POST http://localhost:8080/api/tickets \
   -H "Content-Type: application/json" \
-  -d '{"name": "New Project", "type": "Development"}'
+  -d '{"title": "New Support Ticket", "description": "Issue details here"}'
   ```
 
 ## 🤝 Contributors
 
-Contributions are welcome! 
+Contributions are welcome!
+

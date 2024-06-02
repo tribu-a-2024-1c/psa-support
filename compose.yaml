@@ -4,12 +4,12 @@ services:
     container_name: 'mysql'
     restart: 'always'
     environment:
-      - 'MYSQL_ROOT_PASSWORD=projects'
-      - 'MYSQL_USER=projects'
-      - 'MYSQL_PASSWORD=projects'
-      - 'MYSQL_DATABASE=projects'
+      - 'MYSQL_ROOT_PASSWORD=support'
+      - 'MYSQL_USER=support'
+      - 'MYSQL_PASSWORD=support'
+      - 'MYSQL_DATABASE=support'
     ports:
-      - '3306:3306'
+      - '3307:3306'
     volumes:
       - 'db-data:/var/lib/mysql'
     networks:

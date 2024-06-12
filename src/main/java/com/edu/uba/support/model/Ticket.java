@@ -5,19 +5,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
 import java.util.Date;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "Ticket")
 public class Ticket {
 
     @Id
-    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(length = 255)
     private String titulo;
@@ -40,17 +38,17 @@ public class Ticket {
     @Lob
     private String descripcion;
 
-    @Column(columnDefinition = "uuid")
-    private UUID prioridadId;
+    @Column
+    private Long prioridadId;
 
-    @Column(columnDefinition = "uuid")
-    private UUID clienteId;
+    @Column
+    private Long clienteId;
 
-    @Column(columnDefinition = "uuid")
-    private UUID productoId;
+    @Column
+    private Long productoId;
 
     @ManyToOne
-    @JoinColumn(name = "prioridad_id", insertable = false, updatable = false)
+    @JoinColumn(name = "Prioridad", insertable = false, updatable = false)
     private Prioridad prioridad;
 
 }

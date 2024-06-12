@@ -8,6 +8,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 
 @Service
 public class TicketService {
@@ -16,17 +18,19 @@ public class TicketService {
     @Autowired
     public TicketService(TicketRepository ticketRepository) {
         this.ticketRepository = ticketRepository;
-        //this.restTemplate = restTemplate;
-        //this.petsServiceUrl = petsServiceUrl;
     }
 
     @Transactional
     public Ticket createTicket(CreateTicketDto createTicketDto) {
-        Ticket ticket = mapToOwner(createTicketDto, new Ticket());
+        Optional<Ticket> existingTicket = ticketRepository.findByTitulo(createTicketDto.getTitulo());
+        if (existingTicket.isPresent()) {
+            throw new IllegalStateException("Ya existe un ticket con ese titulo");
+        }
+        Ticket ticket = mapTicket(createTicketDto, new Ticket());
         return ticketRepository.save(ticket);
     }
 
-    private Ticket mapToOwner(CreateTicketDto createTicketDto, Ticket ticket) {
+    private Ticket mapTicket(CreateTicketDto createTicketDto, Ticket ticket) {
         ticket.setId(createTicketDto.getId());
         ticket.setTitulo(createTicketDto.getTitulo());
         ticket.setDescripcion(createTicketDto.getDescripcion());

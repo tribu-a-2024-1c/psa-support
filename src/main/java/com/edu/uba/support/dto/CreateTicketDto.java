@@ -17,18 +17,18 @@ public class CreateTicketDto {
     private String titulo;
 
     @NotNull
-    private UUID id;
+    private Long id;
 
     @NotNull
     private String descripcion;
 
     @NotNull
-    private UUID clienteId;
+    private Long clienteId;
 
     @NotNull
-    private UUID prioridadId;
+    private Long prioridadId;
 
     @NotNull
-    private UUID productoId;
+    private Long productoId;
 
 }

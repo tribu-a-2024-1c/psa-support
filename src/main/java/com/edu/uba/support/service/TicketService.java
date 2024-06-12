@@ -22,21 +22,28 @@ public class TicketService {
 
     @Transactional
     public Ticket createTicket(CreateTicketDto createTicketDto) {
-        Optional<Ticket> existingTicket = ticketRepository.findByTitulo(createTicketDto.getTitulo());
+        Optional<Ticket> existingTicket = ticketRepository.findByTitle(createTicketDto.getTitle()); // findByTitulo
         if (existingTicket.isPresent()) {
-            throw new IllegalStateException("Ya existe un ticket con ese titulo");
+            throw new IllegalStateException("A ticket with that title already exists"); // Ya existe un ticket con ese titulo
         }
         Ticket ticket = mapTicket(createTicketDto, new Ticket());
         return ticketRepository.save(ticket);
     }
 
+    // Mapea los datos del DTO a la entidad
     private Ticket mapTicket(CreateTicketDto createTicketDto, Ticket ticket) {
         ticket.setId(createTicketDto.getId());
-        ticket.setTitulo(createTicketDto.getTitulo());
-        ticket.setDescripcion(createTicketDto.getDescripcion());
-        ticket.setClienteId(createTicketDto.getClienteId());
-        ticket.setPrioridadId(createTicketDto.getPrioridadId());
-        ticket.setProductoId(createTicketDto.getProductoId());
+        ticket.setTitle(createTicketDto.getTitle());
+        ticket.setSeverity(createTicketDto.getSeverity());
+        ticket.setStartDate(createTicketDto.getStartDate());
+        ticket.setEndDate(createTicketDto.getEndDate());
+        ticket.setStatus(createTicketDto.getStatus());
+        ticket.setType(createTicketDto.getType());
+        ticket.setDescription(createTicketDto.getDescription());
+        ticket.setPriorityId(createTicketDto.getPriorityId());
+        ticket.setClientId(createTicketDto.getClientId());
+        ticket.setProductId(createTicketDto.getProductId());
+
         return ticket;
     }
 

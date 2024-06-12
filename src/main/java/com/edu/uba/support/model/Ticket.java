@@ -18,37 +18,36 @@ public class Ticket {
     private Long id;
 
     @Column(length = 255)
-    private String titulo;
+    private String title;
 
     @Column(length = 255)
-    private String severidad;
+    private String severity;
 
     @Temporal(TemporalType.DATE)
-    private Date fechaInicio;
+    private Date startDate;
 
     @Temporal(TemporalType.DATE)
-    private Date fechaFin;
+    private Date endDate;
 
     @Column(length = 255)
-    private String estado;
+    private String status;
 
     @Column(length = 255)
-    private String tipo;
+    private String type;
 
     @Lob
-    private String descripcion;
+    private String description;
 
     @Column
-    private Long prioridadId;
+    private Long priorityId;
 
     @Column
-    private Long clienteId;
+    private Long clientId;
 
     @Column
-    private Long productoId;
+    private Long productId;
 
     @ManyToOne
-    @JoinColumn(name = "Prioridad", insertable = false, updatable = false)
-    private Prioridad prioridad;
-
+    @JoinColumn(name = "Priority", insertable = false, updatable = false)
+    private Priority priority;
 }

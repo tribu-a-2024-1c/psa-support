@@ -25,10 +25,10 @@ public class TicketController {
 
 
     @PostMapping()
-    @Operation(summary = "Crear un nuevo ticket", description = "Este endpoint permite crear un nuevo ticket")
+    @Operation(summary = "Create new ticket", description = "This endpoint allows creating a new ticket")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "El ticket fue creado exitosamente"),
-            @ApiResponse(responseCode = "400", description = "No se pudo crear el ticket"),
+            @ApiResponse(responseCode = "201", description = "The ticket was created successfully"),
+            @ApiResponse(responseCode = "400", description = "The ticket could not be created"),
     })
     public ResponseEntity<String> createTicket(@RequestBody CreateTicketDto createTicketDto) {
         try {

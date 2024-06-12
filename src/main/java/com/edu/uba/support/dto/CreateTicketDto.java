@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
+import java.util.Date;
 
 @Data
 @AllArgsConstructor
@@ -14,21 +14,40 @@ import java.util.UUID;
 public class CreateTicketDto {
 
     @NotNull
-    private String titulo;
-
-    @NotNull
     private Long id;
 
     @NotNull
-    private String descripcion;
+    @Size(max = 255)
+    private String title;
 
     @NotNull
-    private Long clienteId;
+    @Size(max = 255)
+    private String severity;
 
     @NotNull
-    private Long prioridadId;
+    private Date startDate;
 
     @NotNull
-    private Long productoId;
+    private Date endDate;
+
+    @NotNull
+    @Size(max = 255)
+    private String status;
+
+    @NotNull
+    @Size(max = 255)
+    private String type;
+
+    @NotNull
+    private String description;
+
+    @NotNull
+    private Long priorityId;
+
+    @NotNull
+    private Long clientId;
+
+    @NotNull
+    private Long productId;
 
 }

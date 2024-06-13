@@ -22,15 +22,34 @@ public class TicketService {
 
     @Transactional
     public Ticket createTicket(CreateTicketDto createTicketDto) {
-        Optional<Ticket> existingTicket = ticketRepository.findByTitle(createTicketDto.getTitle()); // findByTitulo
+        Optional<Ticket> existingTicket = ticketRepository.findByTitle(createTicketDto.getTitle());
         if (existingTicket.isPresent()) {
-            throw new IllegalStateException("A ticket with that title already exists"); // Ya existe un ticket con ese titulo
+            throw new IllegalStateException("A ticket with that title already exists");
         }
         Ticket ticket = mapTicket(createTicketDto, new Ticket());
         return ticketRepository.save(ticket);
     }
 
-    // Mapea los datos del DTO a la entidad
+    @Transactional
+    public Ticket assignTicket(Long ticketId, Long engineerId) {
+        Optional<Ticket> ticket = ticketRepository.findById(ticketId);
+        if (ticket.isEmpty()) {
+            throw new IllegalStateException("The ticket does not exist");
+        }
+        return ticketRepository.save(ticket.get());
+    }
+
+    @Transactional
+    public Ticket transferTicket(Long ticketId, Long sectorId) {
+        Optional<Ticket> ticket = ticketRepository.findById(ticketId);
+        if (ticket.isEmpty()) {
+            throw new IllegalStateException("The ticket does not exist");
+        }
+        return ticketRepository.save(ticket.get());
+    }
+
+
+    // Mapea los datos del CreateTikcetDTO a la entidad Ticket
     private Ticket mapTicket(CreateTicketDto createTicketDto, Ticket ticket) {
         ticket.setId(createTicketDto.getId());
         ticket.setTitle(createTicketDto.getTitle());

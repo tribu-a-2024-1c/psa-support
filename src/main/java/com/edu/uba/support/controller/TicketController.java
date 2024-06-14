@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/tickets")
@@ -23,19 +25,34 @@ public class TicketController {
         this.ticketService = ticketService;
     }
 
-
     @PostMapping()
     @Operation(summary = "Create new ticket", description = "This endpoint allows creating a new ticket")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "The ticket was created successfully"),
             @ApiResponse(responseCode = "400", description = "The ticket could not be created"),
     })
-    public ResponseEntity<String> createTicket(@RequestBody CreateTicketDto createTicketDto) {
+    public ResponseEntity<Ticket> createTicket(@RequestBody CreateTicketDto createTicketDto) {
         try {
             Ticket ticket = ticketService.createTicket(createTicketDto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ticket.toString());
+            return ResponseEntity.status(HttpStatus.CREATED).body(ticket);
         } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
+
+    @GetMapping()
+    @Operation(summary = "Get all tickets", description = "This endpoint allows getting all tickets")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "The tickets were retrieved successfully"),
+            @ApiResponse(responseCode = "400", description = "The tickets could not be retrieved"),
+    })
+    public ResponseEntity<List<Ticket>> getTickets() {
+        try {
+            List<Ticket> tickets = ticketService.getTickets();
+            return ResponseEntity.status(HttpStatus.OK).body(tickets);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
+
 }

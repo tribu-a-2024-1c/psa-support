@@ -31,12 +31,12 @@ public class TicketController {
             @ApiResponse(responseCode = "201", description = "The ticket was created successfully"),
             @ApiResponse(responseCode = "400", description = "The ticket could not be created"),
     })
-    public ResponseEntity<String> createTicket(@RequestBody CreateTicketDto createTicketDto) {
+    public ResponseEntity<Ticket> createTicket(@RequestBody CreateTicketDto createTicketDto) {
         try {
             Ticket ticket = ticketService.createTicket(createTicketDto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ticket.toString());
+            return ResponseEntity.status(HttpStatus.CREATED).body(ticket);
         } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
 

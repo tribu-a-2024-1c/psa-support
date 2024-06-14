@@ -8,6 +8,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -47,4 +48,7 @@ public class TicketService {
         return ticket;
     }
 
+    public List<Ticket> getTickets() {
+        return ticketRepository.findAll();
+    }
 }

@@ -48,6 +48,14 @@ public class TicketService {
         return ticketRepository.save(ticket.get());
     }
 
+    @Transactional
+    public Ticket finalizeTicket(Long ticketId) {
+        Optional<Ticket> ticket = ticketRepository.findById(ticketId);
+        if (ticket.isEmpty()) {
+            throw new IllegalStateException("The ticket does not exist");
+        }
+        return ticketRepository.save(ticket.get());
+    }
 
     // Mapea los datos del CreateTikcetDTO a la entidad Ticket
     private Ticket mapTicket(CreateTicketDto createTicketDto, Ticket ticket) {

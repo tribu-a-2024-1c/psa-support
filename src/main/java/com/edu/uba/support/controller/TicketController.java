@@ -68,4 +68,19 @@ public class TicketController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
+    @PostMapping("{ticketId}/finalize")
+    @Operation(summary = "Finalize ticket", description = "This endpoint allows finalizing a ticket")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "The ticket was finalized successfully"),
+            @ApiResponse(responseCode = "400", description = "The ticket could not be finalized"),
+    })
+    public ResponseEntity<String> finalizeTicket(@PathVariable Long ticketId) {
+        try {
+            Ticket ticket = ticketService.finalizeTicket(ticketId);
+            return ResponseEntity.status(HttpStatus.OK).body(ticket.toString());
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
 }

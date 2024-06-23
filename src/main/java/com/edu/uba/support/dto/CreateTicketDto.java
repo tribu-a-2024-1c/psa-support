@@ -15,9 +15,6 @@ import java.util.List;
 public class CreateTicketDto {
 
     @NotNull
-    private Long id;
-
-    @NotNull
     @Size(max = 255)
     private String title;
 

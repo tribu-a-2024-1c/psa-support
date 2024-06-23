@@ -30,12 +30,12 @@ public class TicketController {
             @ApiResponse(responseCode = "201", description = "The ticket was created successfully"),
             @ApiResponse(responseCode = "400", description = "The ticket could not be created"),
     })
-    public ResponseEntity<String> createTicket(@RequestBody CreateTicketDto createTicketDto) {
+    public ResponseEntity<Ticket> createTicket(@RequestBody CreateTicketDto createTicketDto) {
         try {
             Ticket ticket = ticketService.createTicket(createTicketDto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ticket.toString());
+            return ResponseEntity.status(HttpStatus.CREATED).body(ticket);
         } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
 
@@ -45,12 +45,12 @@ public class TicketController {
             @ApiResponse(responseCode = "200", description = "The ticket was assigned successfully"),
             @ApiResponse(responseCode = "400", description = "The ticket could not be assigned"),
     })
-    public ResponseEntity<String> assignTicket(@PathVariable Long ticketId, Long resourceId, String resourceName, String resourceLastname) {
+    public ResponseEntity<Ticket> assignTicket(@PathVariable Long ticketId, Long resourceId, String resourceName, String resourceLastname) {
         try {
             Ticket ticket = ticketService.assignTicket(ticketId, resourceId, resourceName, resourceLastname);
-            return ResponseEntity.status(HttpStatus.OK).body(ticket.toString());
+            return ResponseEntity.status(HttpStatus.OK).body(ticket);
         } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
 
@@ -61,12 +61,12 @@ public class TicketController {
             @ApiResponse(responseCode = "200", description = "The task was added successfully"),
             @ApiResponse(responseCode = "400", description = "The task could not be added"),
     })
-    public ResponseEntity<String> addTaskToTicket(@PathVariable Long ticketId, @RequestParam Long taskId) {
+    public ResponseEntity<Ticket> addTaskToTicket(@PathVariable Long ticketId, @RequestParam Long taskId) {
         try {
             Ticket ticket = ticketService.addTaskToTicket(ticketId, taskId);
-            return ResponseEntity.status(HttpStatus.OK).body(ticket.toString());
+            return ResponseEntity.status(HttpStatus.OK).body(ticket);
         } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
 
@@ -76,12 +76,12 @@ public class TicketController {
             @ApiResponse(responseCode = "200", description = "The ticket was finalized successfully"),
             @ApiResponse(responseCode = "400", description = "The ticket could not be finalized"),
     })
-    public ResponseEntity<String> finalizeTicket(@PathVariable Long ticketId) {
+    public ResponseEntity<Ticket> finalizeTicket(@PathVariable Long ticketId) {
         try {
             Ticket ticket = ticketService.finalizeTicket(ticketId);
-            return ResponseEntity.status(HttpStatus.OK).body(ticket.toString());
+            return ResponseEntity.status(HttpStatus.OK).body(ticket);
         } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
 }

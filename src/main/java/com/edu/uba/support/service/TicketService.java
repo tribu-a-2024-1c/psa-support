@@ -44,7 +44,7 @@ public class TicketService {
         }
         Ticket ticket = mapTicket(createTicketDto, new Ticket());
 
-        if (!createTicketDto.getTaskIds().isEmpty()) {
+        if (createTicketDto.getTaskIds() != null && !createTicketDto.getTaskIds().isEmpty()) {
             for (Long taskId : createTicketDto.getTaskIds()) {
                 String url = projectsServiceUrl + "/task/" + taskId;
                 TaskDto registeredTask = restTemplate.getForObject(url, TaskDto.class);
@@ -125,7 +125,6 @@ public class TicketService {
 
     // Mapea los datos del CreateTikcetDTO a la entidad Ticket
     private Ticket mapTicket(CreateTicketDto createTicketDto, Ticket ticket) {
-        ticket.setId(createTicketDto.getId());
         ticket.setTitle(createTicketDto.getTitle());
         ticket.setSeverity(createTicketDto.getSeverity());
         ticket.setStartDate(createTicketDto.getStartDate());

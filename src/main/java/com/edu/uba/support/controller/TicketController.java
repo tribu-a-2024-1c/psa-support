@@ -40,29 +40,14 @@ public class TicketController {
     }
 
     @PostMapping("{ticketId}/assign")
-    @Operation(summary = "Assign ticket", description = "This endpoint allows assigning a ticket to a support engineer")
+    @Operation(summary = "Assign ticket", description = "This endpoint allows assigning a ticket to a resource")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "The ticket was assigned successfully"),
             @ApiResponse(responseCode = "400", description = "The ticket could not be assigned"),
     })
-    public ResponseEntity<String> assignTicket(@PathVariable Long ticketId, @RequestParam Long engineerId) { // Crear dto de recursos para asignar ingeniero
+    public ResponseEntity<String> assignTicket(@PathVariable Long ticketId, Long resourceId, String resourceName, String resourceLastname) {
         try {
-            Ticket ticket = ticketService.assignTicket(ticketId, engineerId);
-            return ResponseEntity.status(HttpStatus.OK).body(ticket.toString());
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-    }
-
-    @PostMapping("{ticketId}/transfer")
-    @Operation(summary = "Transfer ticket", description = "This endpoint allows transferring a ticket to another sector or person")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "The ticket was transferred successfully"),
-            @ApiResponse(responseCode = "400", description = "The ticket could not be transferred"),
-    })
-    public ResponseEntity<String> transferTicket(@PathVariable Long ticketId, @RequestParam Long personaId) {
-        try {
-            Ticket ticket = ticketService.transferTicket(ticketId, personaId);
+            Ticket ticket = ticketService.assignTicket(ticketId, resourceId, resourceName, resourceLastname);
             return ResponseEntity.status(HttpStatus.OK).body(ticket.toString());
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -85,8 +70,6 @@ public class TicketController {
         }
     }
 
-    // Endpoint para crear tareas a partir del ticket (ticketId, nombreTarea) Hablar con la api de proyectos para crear la tarea
-
     @PostMapping("{ticketId}/finalize")
     @Operation(summary = "Finalize ticket", description = "This endpoint allows finalizing a ticket")
     @ApiResponses({
@@ -94,7 +77,6 @@ public class TicketController {
             @ApiResponse(responseCode = "400", description = "The ticket could not be finalized"),
     })
     public ResponseEntity<String> finalizeTicket(@PathVariable Long ticketId) {
-        // Si todas las tareas estan finalizadas se permite finalizacion
         try {
             Ticket ticket = ticketService.finalizeTicket(ticketId);
             return ResponseEntity.status(HttpStatus.OK).body(ticket.toString());

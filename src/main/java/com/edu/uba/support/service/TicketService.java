@@ -1,7 +1,9 @@
 package com.edu.uba.support.service;
 
 import com.edu.uba.support.dto.CreateTicketDto;
-import com.edu.uba.support.dto.TaskResponseDto;
+import com.edu.uba.support.dto.ResourceDto;
+import com.edu.uba.support.dto.TaskDto;
+import com.edu.uba.support.model.Resource;
 import com.edu.uba.support.model.Task;
 import com.edu.uba.support.model.Ticket;
 import com.edu.uba.support.repository.TaskRepository;
@@ -10,8 +12,6 @@ import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -43,24 +43,39 @@ public class TicketService {
             throw new IllegalStateException("A ticket with that title already exists");
         }
         Ticket ticket = mapTicket(createTicketDto, new Ticket());
+
+        if (!createTicketDto.getTaskIds().isEmpty()) {
+            for (Long taskId : createTicketDto.getTaskIds()) {
+                String url = projectsServiceUrl + "/task/" + taskId;
+                TaskDto registeredTask = restTemplate.getForObject(url, TaskDto.class);
+
+                if (registeredTask == null) {
+                    throw new IllegalStateException("The task does not exist");
+                }
+
+                String projectApiUrl = projectsServiceUrl + "/assignTicket/" + taskId;
+                restTemplate.postForObject(projectApiUrl, ticket, String.class);
+
+                Task task = new Task(registeredTask.getId(), registeredTask.getTitle());
+                ticket.getTasks().add(task);
+
+                taskRepository.save(task);
+            }
+        }
+
         return ticketRepository.save(ticket);
     }
 
     @Transactional
-    public Ticket assignTicket(Long ticketId, Long engineerId) {
+    public Ticket assignTicket(Long ticketId, Long resourceId, String resourceName, String resourceLastname) {
         Optional<Ticket> ticket = ticketRepository.findById(ticketId);
         if (ticket.isEmpty()) {
             throw new IllegalStateException("The ticket does not exist");
         }
-        return ticketRepository.save(ticket.get());
-    }
 
-    @Transactional
-    public Ticket transferTicket(Long ticketId, Long personaId) {
-        Optional<Ticket> ticket = ticketRepository.findById(ticketId);
-        if (ticket.isEmpty()) {
-            throw new IllegalStateException("The ticket does not exist");
-        }
+        Resource resource = new Resource(resourceId, resourceName, resourceLastname);
+        ticket.get().setResource(resource);
+
         return ticketRepository.save(ticket.get());
     }
 
@@ -70,6 +85,18 @@ public class TicketService {
         if (ticket.isEmpty()) {
             throw new IllegalStateException("The ticket does not exist");
         }
+        for (Task task : ticket.get().getTasks()) {
+            Long taskId = task.getId();
+            String url = projectsServiceUrl + "/task/" + taskId;
+            TaskDto registeredTask = restTemplate.getForObject(url, TaskDto.class);
+            if (registeredTask == null) {
+                throw new IllegalStateException("The task does not exist");
+            }
+            if (!registeredTask.getStatus().equals("Finalizado")) {
+                throw new IllegalStateException("All tasks must be finalized before finalizing the ticket");
+            }
+        }
+        ticket.get().setStatus("Finalizado");
         return ticketRepository.save(ticket.get());
     }
 
@@ -81,7 +108,7 @@ public class TicketService {
         }
 
         String url = projectsServiceUrl + "/task/" + taskId;
-        TaskResponseDto registeredTask = restTemplate.getForObject(url, TaskResponseDto.class);
+        TaskDto registeredTask = restTemplate.getForObject(url, TaskDto.class);
         if (registeredTask == null) {
             throw new IllegalStateException("The task does not exist");
         }

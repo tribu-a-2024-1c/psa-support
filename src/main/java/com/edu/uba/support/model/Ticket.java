@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -47,7 +48,15 @@ public class Ticket {
     @Column
     private Long productId;
 
+    @OneToMany
+    @JoinColumn(name = "Task", insertable= false)
+    private List<Task> tasks;
+
     @ManyToOne
     @JoinColumn(name = "Priority", insertable = false, updatable = false)
     private Priority priority;
+
+    @ManyToOne
+    @JoinColumn(name = "Resource", insertable = false)
+    private Resource resource;
 }

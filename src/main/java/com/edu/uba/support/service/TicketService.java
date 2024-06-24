@@ -51,6 +51,7 @@ public class TicketService {
         }
 
         Ticket ticket = mapTicket(createTicketDto, new Ticket());
+        ticket = ticketRepository.save(ticket); // Save the ticket to generate its ID
 
         if (createTicketDto.getTaskIds() != null && !createTicketDto.getTaskIds().isEmpty()) {
             for (Long taskId : createTicketDto.getTaskIds()) {
@@ -65,13 +66,12 @@ public class TicketService {
 
                 logger.info("🔗 Assigning ticket to task with id: {}", taskId);
                 String projectApiUrl = projectsServiceUrl + "/projects/tasks/" + taskId + "/assignTicket";
-                restTemplate.postForObject(projectApiUrl, ticket, String.class);
+                restTemplate.postForObject(projectApiUrl, ticket, String.class); // Send ticket with generated ID
 
                 Task task = new Task(taskDto.getId(), taskDto.getTitle(), ticket);
                 taskRepository.save(task);
             }
         }
-
         ticket = ticketRepository.save(ticket);
         logger.info("✅ Ticket created successfully with id: {}", ticket.getId());
         return ticket;

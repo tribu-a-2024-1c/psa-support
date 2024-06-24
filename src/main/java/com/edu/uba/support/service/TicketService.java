@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -167,5 +168,13 @@ public class TicketService {
 
     public List<Ticket> getTickets() {
         return ticketRepository.findAll();
+    }
+
+    public List<Task> getTasksByTicket(Long ticketId) {
+        Optional<Ticket> optionalTicket = ticketRepository.findById(ticketId);
+        if (optionalTicket.isEmpty()) {
+            throw new IllegalStateException("The ticket does not exist");
+        }
+        return new ArrayList<>(optionalTicket.get().getTasks());
     }
 }

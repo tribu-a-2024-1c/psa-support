@@ -2,6 +2,7 @@ package com.edu.uba.support.controller;
 
 import com.edu.uba.support.dto.AssignResourceDto;
 import com.edu.uba.support.dto.CreateTicketDto;
+import com.edu.uba.support.model.Task;
 import com.edu.uba.support.model.Ticket;
 import com.edu.uba.support.service.TicketService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -101,5 +102,22 @@ public class TicketController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
+    @GetMapping("/{ticketId}/tasks")
+    @Operation(summary = "Get all tasks associated with a ticket", description = "This endpoint allows getting all tasks associated with a ticket")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "The tasks were retrieved successfully"),
+        @ApiResponse(responseCode = "404", description = "Ticket not found"),
+        @ApiResponse(responseCode = "400", description = "The tasks could not be retrieved")
+    })
 
+    public ResponseEntity<List<Task>> getTasksByTicket(@PathVariable Long ticketId) {
+        try {
+            List<Task> tasks = ticketService.getTasksByTicket(ticketId);
+            return ResponseEntity.status(HttpStatus.OK).body(tasks);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package com.edu.uba.support.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -48,8 +49,8 @@ public class Ticket {
     @Column
     private Long productId;
 
-    @OneToMany
-    @JoinColumn(name = "Task", insertable= false)
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference // to avoid infinite recursion when serializing the object
     private List<Task> tasks;
 
     @ManyToOne

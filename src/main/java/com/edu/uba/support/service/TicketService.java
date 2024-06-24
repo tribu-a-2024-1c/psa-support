@@ -10,7 +10,6 @@ import com.edu.uba.support.repository.ResourceRepository;
 import com.edu.uba.support.repository.TaskRepository;
 import com.edu.uba.support.repository.TicketRepository;
 import jakarta.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,17 +19,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-
 @Service
 public class TicketService {
+
     private final TicketRepository ticketRepository;
-
     private final RestTemplate restTemplate;
-
     private final String projectsServiceUrl;
-
     private final TaskRepository taskRepository;
-
     private final ResourceRepository resourceRepository;
 
     @Autowired
@@ -48,30 +43,28 @@ public class TicketService {
         if (existingTicket.isPresent()) {
             throw new IllegalStateException("A ticket with that title already exists");
         }
+
         Ticket ticket = mapTicket(createTicketDto, new Ticket());
 
         if (createTicketDto.getTaskIds() != null && !createTicketDto.getTaskIds().isEmpty()) {
             for (Long taskId : createTicketDto.getTaskIds()) {
-                String url = projectsServiceUrl + "/task/" + taskId;
+                String url = projectsServiceUrl + "/projects/task/" + taskId;
                 TaskDto taskDto = restTemplate.getForObject(url, TaskDto.class);
 
                 if (taskDto == null) {
                     throw new IllegalStateException("The task does not exist");
                 }
 
-                String projectApiUrl = projectsServiceUrl + "/assignTicket/" + taskId;
+                String projectApiUrl = projectsServiceUrl + "/projects/tasks/" + taskId + "/assignTicket";
                 restTemplate.postForObject(projectApiUrl, ticket, String.class);
 
-                Task task = new Task(taskDto.getId(), taskDto.getTitle());
-                ticket.getTasks().add(task);
-
+                Task task = new Task(taskDto.getId(), taskDto.getTitle(), ticket);
                 taskRepository.save(task);
             }
         }
 
         return ticketRepository.save(ticket);
     }
-
 
     @Transactional
     public Ticket addTaskToTicket(Long ticketId, Long taskId) {
@@ -102,7 +95,7 @@ public class TicketService {
         restTemplate.postForObject(projectApiUrl, ticket, String.class);
 
         // Create a new Task entity and add it to the ticket
-        Task task = new Task(registeredTask.getId(), registeredTask.getTitle());
+        Task task = new Task(registeredTask.getId(), registeredTask.getTitle(), ticket);
         ticket.getTasks().add(task);
 
         taskRepository.save(task);
@@ -140,7 +133,6 @@ public class TicketService {
         ticket.setResource(resource);
         return ticketRepository.save(ticket);
     }
-
 
     @Transactional
     public Ticket finalizeTicket(Long ticketId) {

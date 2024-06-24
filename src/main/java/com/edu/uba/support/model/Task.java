@@ -3,6 +3,7 @@ package com.edu.uba.support.model;
 import java.util.Date;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -23,10 +24,14 @@ import lombok.ToString;
 public class Task {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
+	@Column
 	private Long id;
 
+	@Column
 	private String title;
 
+	@ManyToOne
+	@JoinColumn(name = "ticket_id")
+	@JsonManagedReference // to avoid infinite recursion when serializing the object
+	private Ticket ticket;
 }

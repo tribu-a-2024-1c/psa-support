@@ -80,13 +80,13 @@ public class TicketService {
             throw new IllegalStateException("The ticket does not exist");
         }
 
-        String url = projectsServiceUrl + "/task/" + taskId;
+        String url = projectsServiceUrl + "/projects/task/" + taskId;
         TaskDto registeredTask = restTemplate.getForObject(url, TaskDto.class);
         if (registeredTask == null) {
             throw new IllegalStateException("The task does not exist");
         }
 
-        String projectApiUrl = projectsServiceUrl + "/assignTicket/" + taskId;
+        String projectApiUrl = projectsServiceUrl + "/projects/tasks/" + taskId + "/assignTicket";
         restTemplate.postForObject(projectApiUrl, ticket.get(), String.class);
 
         Task task = new Task(registeredTask.getId(), registeredTask.getTitle());

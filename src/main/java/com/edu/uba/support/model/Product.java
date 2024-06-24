@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -28,6 +29,12 @@ public class Product {
 	@JsonBackReference // to avoid infinite recursion when serializing the object
 	@JsonIgnoreProperties({"products"})
 	private Set<Client> clients = new HashSet<>();
+
+	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+	@JsonBackReference // to avoid infinite recursion when serializing the object
+	@JsonIgnoreProperties({"product"})
+	@ToString.Exclude // Exclude from Lombok's toString() to avoid circular reference
+	private Set<ProductVersion> versions = new HashSet<>();
 
 	@Override
 	public boolean equals(Object o) {

@@ -2,6 +2,7 @@ package com.edu.uba.support.controller;
 
 import com.edu.uba.support.dto.CreateProductDto;
 import com.edu.uba.support.dto.CreateProductVersionDto;
+import com.edu.uba.support.dto.ProductDto;
 import com.edu.uba.support.model.Product;
 import com.edu.uba.support.model.ProductVersion;
 import com.edu.uba.support.service.ProductService;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/products")
@@ -29,26 +29,27 @@ public class ProductController {
 		this.productService = productService;
 	}
 
-	@PostMapping()
-	@Operation(summary = "Create new product", description = "This endpoint allows creating a new product")
+	@PostMapping("/products")
+	@Operation(summary = "Create new product", description = "This endpoint allows creating a new product with an optional version and clients")
 	@ApiResponses({
 			@ApiResponse(responseCode = "201", description = "The product was created successfully"),
 			@ApiResponse(responseCode = "400", description = "The product could not be created"),
 	})
-	public ResponseEntity<Product> createProduct(@RequestBody CreateProductDto createProductDto) {
+	public ResponseEntity<ProductDto> createProduct(@RequestBody CreateProductDto createProductDto) {
 		try {
-			Product product = productService.createProduct(createProductDto);
+			ProductDto product = productService.createProduct(createProductDto);
 			return ResponseEntity.status(HttpStatus.CREATED).body(product);
 		} catch (IllegalStateException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 		}
 	}
 
+
 	@PostMapping("/{productId}/version")
-	@Operation(summary = "Create new product version", description = "This endpoint allows creating a new version for a product")
+	@Operation(summary = "Create a new version for a product")
 	@ApiResponses({
-			@ApiResponse(responseCode = "201", description = "The product version was created successfully"),
-			@ApiResponse(responseCode = "400", description = "The product version could not be created"),
+			@ApiResponse(responseCode = "201", description = "The version was created successfully"),
+			@ApiResponse(responseCode = "400", description = "The version could not be created"),
 	})
 	public ResponseEntity<ProductVersion> createProductVersion(@PathVariable Long productId, @RequestBody CreateProductVersionDto createProductVersionDto) {
 		try {
@@ -60,50 +61,47 @@ public class ProductController {
 	}
 
 	@PostMapping("/{productId}/client/{clientId}")
-	@Operation(summary = "Assign client to product", description = "This endpoint allows assigning a client to a product")
+	@Operation(summary = "Assign a client to a product")
 	@ApiResponses({
-			@ApiResponse(responseCode = "200", description = "The client was assigned to the product successfully"),
-			@ApiResponse(responseCode = "404", description = "Product or client not found"),
+			@ApiResponse(responseCode = "200", description = "The client was assigned successfully"),
+			@ApiResponse(responseCode = "400", description = "The client could not be assigned"),
 	})
 	public ResponseEntity<Product> assignClientToProduct(@PathVariable Long productId, @PathVariable Long clientId) {
 		try {
 			Product product = productService.assignClientToProduct(productId, clientId);
 			return ResponseEntity.ok(product);
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-		}
-	}
-
-	@GetMapping()
-	@Operation(summary = "Get all products", description = "This endpoint allows getting all products")
-	@ApiResponses({
-			@ApiResponse(responseCode = "200", description = "The products were retrieved successfully"),
-			@ApiResponse(responseCode = "400", description = "The products could not be retrieved"),
-	})
-	public ResponseEntity<List<Product>> getProducts() {
-		try {
-			Set<Product> products = productService.getProducts();
-			List<Product> productList = new ArrayList<>(products);
-			return ResponseEntity.status(HttpStatus.OK).body(productList);
 		} catch (IllegalStateException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 		}
 	}
 
+	@GetMapping("/products")
+	@Operation(summary = "Get all products", description = "This endpoint returns all products with their versions and clients")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "The products were retrieved successfully"),
+			@ApiResponse(responseCode = "400", description = "The products could not be retrieved"),
+	})
+	public ResponseEntity<List<ProductDto>> getAllProducts() {
+		try {
+			List<ProductDto> products = productService.getAllProducts();
+			return ResponseEntity.status(HttpStatus.OK).body(products);
+		} catch (IllegalStateException e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+		}
+	}
+
+
 	@GetMapping("/{productId}/versions")
 	@Operation(summary = "Get all versions of a product", description = "This endpoint allows getting all versions of a product")
 	@ApiResponses({
-			@ApiResponse(responseCode = "200", description = "The product versions were retrieved successfully"),
-			@ApiResponse(responseCode = "404", description = "Product not found"),
-			@ApiResponse(responseCode = "400", description = "The product versions could not be retrieved"),
+			@ApiResponse(responseCode = "200", description = "The versions were retrieved successfully"),
+			@ApiResponse(responseCode = "400", description = "The versions could not be retrieved"),
 	})
 	public ResponseEntity<List<ProductVersion>> getProductVersions(@PathVariable Long productId) {
 		try {
-			List<ProductVersion> productVersions = productService.getProductVersions(productId);
-			return ResponseEntity.status(HttpStatus.OK).body(productVersions);
+			List<ProductVersion> versions = productService.getProductVersions(productId);
+			return ResponseEntity.status(HttpStatus.OK).body(versions);
 		} catch (IllegalStateException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 		}
 	}

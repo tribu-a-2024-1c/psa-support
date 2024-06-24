@@ -2,7 +2,7 @@ package com.edu.uba.support.service;
 
 import com.edu.uba.support.dto.CreateProductDto;
 import com.edu.uba.support.dto.CreateProductVersionDto;
-import com.edu.uba.support.dto.CreateProductDto.ClientDto;
+import com.edu.uba.support.dto.ProductDto;
 import com.edu.uba.support.model.Client;
 import com.edu.uba.support.model.Product;
 import com.edu.uba.support.model.ProductVersion;
@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -39,45 +38,47 @@ public class ProductService {
 	}
 
 	@Transactional
-	public Product createProduct(CreateProductDto createProductDto) {
+	public ProductDto createProduct(CreateProductDto createProductDto) {
 		logger.info("📦 Creating product with name: {}", createProductDto.getName());
+
+		// Create and save product
 		Product product = new Product();
 		product.setName(createProductDto.getName());
+		product = productRepository.save(product);
 
-		Product savedProduct = productRepository.save(product);
-		logger.info("✅ Product created successfully with id: {}", savedProduct.getId());
-
-		// Create product version
-		if (createProductDto.getVersion() != null) {
+		// Create and save product version
+		String version = createProductDto.getVersion();
+		if (version != null) {
 			ProductVersion productVersion = new ProductVersion();
-			productVersion.setVersion(createProductDto.getVersion());
-			productVersion.setProduct(savedProduct);
+			productVersion.setVersion(version);
+			productVersion.setProduct(product);
 			productVersionRepository.save(productVersion);
-			logger.info("✅ Product version '{}' created successfully for product id: {}", createProductDto.getVersion(), savedProduct.getId());
+			logger.info("🔗 Created version '{}' for product '{}'", version, product.getName());
 		}
 
-		// Associate clients with product
-		if (createProductDto.getClients() != null && !createProductDto.getClients().isEmpty()) {
-			Set<Client> clients = createProductDto.getClients().stream().map(clientDto -> {
-				Optional<Client> optionalClient = clientRepository.findById(clientDto.getId());
-				if (optionalClient.isPresent()) {
-					return optionalClient.get();
-				} else {
-					Client client = new Client();
-					client.setId(clientDto.getId());
-					client.setCompanyName(clientDto.getRazonSocial());
-					client.setCuit(clientDto.getCuit());
-					return clientRepository.save(client);
-				}
-			}).collect(Collectors.toSet());
+		// Assign clients to product
+		Set<Client> clients = createProductDto.getClients().stream().map(clientDto ->
+				clientRepository.findById(clientDto.getId()).orElseGet(() -> {
+					Client newClient = new Client();
+					newClient.setId(clientDto.getId());
+					newClient.setCompanyName(clientDto.getRazonSocial());
+					newClient.setCuit(clientDto.getCuit());
+					return clientRepository.save(newClient);
+				})
+		).collect(Collectors.toSet());
 
-			savedProduct.setClients(clients);
-			productRepository.save(savedProduct);
-			logger.info("✅ Associated {} clients with product id: {}", clients.size(), savedProduct.getId());
-		}
+		product.setClients(clients);
+		product = productRepository.save(product);
 
-		return savedProduct;
+		// Map to ProductDto
+		Set<ProductDto.ClientDto> clientDtos = clients.stream().map(client ->
+				new ProductDto.ClientDto(client.getId(), client.getCompanyName(), client.getCuit())).collect(Collectors.toSet());
+		ProductDto productDto = new ProductDto(product.getId(), product.getName(), version, clientDtos);
+
+		logger.info("✅ Product created successfully with id: {}", product.getId());
+		return productDto;
 	}
+
 
 	@Transactional
 	public ProductVersion createProductVersion(Long productId, CreateProductVersionDto createProductVersionDto) {
@@ -121,12 +122,22 @@ public class ProductService {
 		return product;
 	}
 
-	public Set<Product> getProducts() {
-		logger.info("🔍 Fetching all products");
-		Set<Product> products = new HashSet<>(productRepository.findAll());
-		logger.info("✅ Found {} products", products.size());
-		return products;
+	@Transactional
+	public List<ProductDto> getAllProducts() {
+		logger.info("📦 Fetching all products");
+		List<Product> products = productRepository.findAll();
+
+		List<ProductDto> productDtos = products.stream().map(product -> {
+			String version = product.getVersions().isEmpty() ? null : product.getVersions().iterator().next().getVersion(); // Assuming there's only one version
+			Set<ProductDto.ClientDto> clientDtos = product.getClients().stream().map(client ->
+					new ProductDto.ClientDto(client.getId(), client.getCompanyName(), client.getCuit())).collect(Collectors.toSet());
+			return new ProductDto(product.getId(), product.getName(), version, clientDtos);
+		}).collect(Collectors.toList());
+
+		logger.info("✅ Fetched {} products", productDtos.size());
+		return productDtos;
 	}
+
 
 	public List<ProductVersion> getProductVersions(Long productId) {
 		logger.info("🔍 Fetching all versions for product with id: {}", productId);

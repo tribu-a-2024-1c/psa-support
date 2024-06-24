@@ -303,4 +303,17 @@ public class TicketService {
         logger.info("✅ Found {} tasks for ticket with id: {}", tasks.size(), ticketId);
         return tasks;
     }
+
+    @Transactional
+    public Ticket getTicketById(Long ticketId) {
+        logger.info("🔍 Fetching ticket with id: {}", ticketId);
+        Optional<Ticket> ticket = ticketRepository.findById(ticketId);
+        if (ticket.isEmpty()) {
+            logger.error("❌ The ticket with id '{}' does not exist", ticketId);
+            throw new IllegalStateException("The ticket does not exist");
+        }
+        logger.info("✅ Ticket with id '{}' fetched successfully", ticketId);
+        return ticket.get();
+    }
+
 }

@@ -136,4 +136,19 @@ public class TicketController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
+    @GetMapping("/{ticketId}")
+    @Operation(summary = "Get ticket by ID", description = "This endpoint allows getting a ticket by its ID")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "The ticket was retrieved successfully"),
+        @ApiResponse(responseCode = "404", description = "Ticket not found"),
+    })
+    public ResponseEntity<Ticket> getTicketById(@PathVariable Long ticketId) {
+        try {
+            Ticket ticket = ticketService.getTicketById(ticketId);
+            return ResponseEntity.status(HttpStatus.OK).body(ticket);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
 }

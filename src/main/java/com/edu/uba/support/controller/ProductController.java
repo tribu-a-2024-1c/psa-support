@@ -13,7 +13,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/products")
@@ -79,8 +82,9 @@ public class ProductController {
 	})
 	public ResponseEntity<List<Product>> getProducts() {
 		try {
-			List<Product> products = productService.getProducts();
-			return ResponseEntity.status(HttpStatus.OK).body(products);
+			Set<Product> products = productService.getProducts();
+			List<Product> productList = new ArrayList<>(products);
+			return ResponseEntity.status(HttpStatus.OK).body(productList);
 		} catch (IllegalStateException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 		}

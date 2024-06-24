@@ -109,7 +109,6 @@ public class TicketController {
         @ApiResponse(responseCode = "404", description = "Ticket not found"),
         @ApiResponse(responseCode = "400", description = "The tasks could not be retrieved")
     })
-
     public ResponseEntity<List<Task>> getTasksByTicket(@PathVariable Long ticketId) {
         try {
             List<Task> tasks = ticketService.getTasksByTicket(ticketId);
@@ -117,6 +116,23 @@ public class TicketController {
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
+
+    @PutMapping("/{ticketId}/updateTicket")
+    @Operation(summary = "Update an existing ticket")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Ticket updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Ticket not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid input")
+    })
+    public ResponseEntity<Ticket> updateTicket(@PathVariable Long ticketId, @RequestBody CreateTicketDto ticketDto) {
+        try {
+            Ticket updatedTicket = ticketService.updateTicket(ticketId, ticketDto);
+            return ResponseEntity.status(HttpStatus.OK).body(updatedTicket);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }

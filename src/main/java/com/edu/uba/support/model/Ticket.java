@@ -39,7 +39,7 @@ public class Ticket {
     private String description;
 
     @Column
-    private String priority;
+    private String severity;
 
     @ManyToOne
     @JoinColumn(name = "product_version_id")

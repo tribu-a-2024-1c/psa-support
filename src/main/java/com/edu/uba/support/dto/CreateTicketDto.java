@@ -17,7 +17,7 @@ public class CreateTicketDto {
     private String status;
     private String type;
     private String description;
-    private String priority;  // enum for priority on frontend
+    private String severity;  // enum for priority on frontend
     private Long productVersionId;
     private Resource resource;
     private List<Long> taskIds;

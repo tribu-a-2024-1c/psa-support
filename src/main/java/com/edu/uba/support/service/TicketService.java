@@ -204,6 +204,76 @@ public class TicketService {
         return finalizedTicket;
     }
 
+    @Transactional
+    public Ticket updateTicket(Long ticketId, CreateTicketDto ticketDto) {
+        logger.info("🔄 Updating ticket with id: {}", ticketId);
+        Optional<Ticket> optionalTicket = ticketRepository.findById(ticketId);
+        if (optionalTicket.isEmpty()) {
+            logger.error("❌ The ticket with id '{}' does not exist", ticketId);
+            throw new IllegalStateException("The ticket does not exist");
+        }
+        Ticket existingTicket = optionalTicket.get();
+
+        // Update the product version if provided
+        if (ticketDto.getProductVersionId() != null) {
+            Optional<ProductVersion> productVersion = productVersionRepository.findById(ticketDto.getProductVersionId());
+            existingTicket.setProductVersion(productVersion.get());
+        }
+
+        // Update the resource if provided
+        if (ticketDto.getResource() != null) {
+            Resource resource = resourceRepository.findById(ticketDto.getResource().getLegajo())
+                    .orElseGet(() -> {
+                        Resource newResource = new Resource();
+                        newResource.setId(ticketDto.getResource().getLegajo());
+                        newResource.setName(ticketDto.getResource().getNombre());
+                        newResource.setLastName(ticketDto.getResource().getApellido());
+                        newResource.addTicket(existingTicket);
+                        return resourceRepository.save(newResource);
+                    });
+
+            // Remove ticket from old resource if exists
+            if (existingTicket.getResource() != null) {
+                existingTicket.getResource().removeTicket(existingTicket);
+            }
+
+            // Add ticket to new resource
+            resource.addTicket(existingTicket);
+            existingTicket.setResource(resource);
+        } else {
+            // Remove ticket from old resource if exists and new resource is not provided
+            if (existingTicket.getResource() != null) {
+                existingTicket.getResource().removeTicket(existingTicket);
+                existingTicket.setResource(null);
+            }
+        }
+
+        // Update the tasks if provided
+        if (ticketDto.getTaskIds() != null && !ticketDto.getTaskIds().isEmpty()) {
+            for (Long taskId : ticketDto.getTaskIds()) {
+                String url = projectsServiceUrl + "/projects/task/" + taskId;
+                TaskDto taskDto = restTemplate.getForObject(url, TaskDto.class);
+
+                if (taskDto == null) {
+                    logger.error("❌ The task with id '{}' does not exist", taskId);
+                    throw new IllegalStateException("The task does not exist");
+                }
+
+                String projectApiUrl = projectsServiceUrl + "/projects/tasks/" + taskId + "/assignTicket";
+                restTemplate.postForObject(projectApiUrl, existingTicket, String.class); // Send ticket with generated ID
+
+                Task task = new Task(taskDto.getId(), taskDto.getTitle(), existingTicket);
+                taskRepository.save(task);
+            }
+        }
+
+        // Map the rest of the ticket fields from the DTO
+        mapTicket(ticketDto, existingTicket);
+
+        // Save the updated ticket
+        return ticketRepository.save(existingTicket);
+    }
+
     private Ticket mapTicket(CreateTicketDto createTicketDto, Ticket ticket) {
         logger.info("🔄 Mapping CreateTicketDto to Ticket entity");
         ticket.setTitle(createTicketDto.getTitle());
@@ -212,7 +282,7 @@ public class TicketService {
         ticket.setStatus(createTicketDto.getStatus());
         ticket.setType(createTicketDto.getType());
         ticket.setDescription(createTicketDto.getDescription());
-        ticket.setPriority(createTicketDto.getPriority());
+        ticket.setSeverity(createTicketDto.getSeverity());
 
         return ticket;
     }

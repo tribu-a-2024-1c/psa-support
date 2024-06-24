@@ -75,25 +75,38 @@ public class TicketService {
 
     @Transactional
     public Ticket addTaskToTicket(Long ticketId, Long taskId) {
-        Optional<Ticket> ticket = ticketRepository.findById(ticketId);
-        if (ticket.isEmpty()) {
+        Optional<Ticket> optionalTicket = ticketRepository.findById(ticketId);
+        if (optionalTicket.isEmpty()) {
             throw new IllegalStateException("The ticket does not exist");
         }
 
+        Ticket ticket = optionalTicket.get();
+
+        // Check if the task already exists in the ticket
+        boolean taskExists = ticket.getTasks().stream()
+            .anyMatch(existingTask -> existingTask.getId().equals(taskId));
+
+        if (taskExists) {
+            throw new IllegalStateException("The task is already assigned to the ticket");
+        }
+
+        // Fetch the task from the project service
         String url = projectsServiceUrl + "/projects/task/" + taskId;
         TaskDto registeredTask = restTemplate.getForObject(url, TaskDto.class);
         if (registeredTask == null) {
             throw new IllegalStateException("The task does not exist");
         }
 
+        // Assign the ticket to the task in the project service
         String projectApiUrl = projectsServiceUrl + "/projects/tasks/" + taskId + "/assignTicket";
-        restTemplate.postForObject(projectApiUrl, ticket.get(), String.class);
+        restTemplate.postForObject(projectApiUrl, ticket, String.class);
 
+        // Create a new Task entity and add it to the ticket
         Task task = new Task(registeredTask.getId(), registeredTask.getTitle());
-        ticket.get().getTasks().add(task);
+        ticket.getTasks().add(task);
 
         taskRepository.save(task);
-        return ticketRepository.save(ticket.get());
+        return ticketRepository.save(ticket);
     }
 
     @Transactional

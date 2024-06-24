@@ -53,7 +53,6 @@ public class Ticket {
     private Long productId;
 
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL)
-    @JsonManagedReference // to avoid infinite recursion when serializing the object
     @JsonIgnoreProperties({"ticket"})
     @ToString.Exclude // Exclude from Lombok's toString() to avoid circular reference
     private List<Task> tasks;

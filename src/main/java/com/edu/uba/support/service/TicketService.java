@@ -10,6 +10,8 @@ import com.edu.uba.support.repository.ResourceRepository;
 import com.edu.uba.support.repository.TaskRepository;
 import com.edu.uba.support.repository.TicketRepository;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,8 @@ import java.util.Optional;
 
 @Service
 public class TicketService {
+
+    private static final Logger logger = LoggerFactory.getLogger(TicketService.class);
 
     private final TicketRepository ticketRepository;
     private final RestTemplate restTemplate;
@@ -39,8 +43,10 @@ public class TicketService {
 
     @Transactional
     public Ticket createTicket(CreateTicketDto createTicketDto) {
+        logger.info("📦 Creating ticket with title: {}", createTicketDto.getTitle());
         Optional<Ticket> existingTicket = ticketRepository.findByTitle(createTicketDto.getTitle());
         if (existingTicket.isPresent()) {
+            logger.error("❌ A ticket with the title '{}' already exists", createTicketDto.getTitle());
             throw new IllegalStateException("A ticket with that title already exists");
         }
 
@@ -48,13 +54,16 @@ public class TicketService {
 
         if (createTicketDto.getTaskIds() != null && !createTicketDto.getTaskIds().isEmpty()) {
             for (Long taskId : createTicketDto.getTaskIds()) {
+                logger.info("🔍 Fetching task with id: {}", taskId);
                 String url = projectsServiceUrl + "/projects/task/" + taskId;
                 TaskDto taskDto = restTemplate.getForObject(url, TaskDto.class);
 
                 if (taskDto == null) {
+                    logger.error("❌ The task with id '{}' does not exist", taskId);
                     throw new IllegalStateException("The task does not exist");
                 }
 
+                logger.info("🔗 Assigning ticket to task with id: {}", taskId);
                 String projectApiUrl = projectsServiceUrl + "/projects/tasks/" + taskId + "/assignTicket";
                 restTemplate.postForObject(projectApiUrl, ticket, String.class);
 
@@ -63,57 +72,64 @@ public class TicketService {
             }
         }
 
-        return ticketRepository.save(ticket);
+        ticket = ticketRepository.save(ticket);
+        logger.info("✅ Ticket created successfully with id: {}", ticket.getId());
+        return ticket;
     }
 
     @Transactional
     public Ticket addTaskToTicket(Long ticketId, Long taskId) {
+        logger.info("🔍 Adding task with id '{}' to ticket with id '{}'", taskId, ticketId);
         Optional<Ticket> optionalTicket = ticketRepository.findById(ticketId);
         if (optionalTicket.isEmpty()) {
+            logger.error("❌ The ticket with id '{}' does not exist", ticketId);
             throw new IllegalStateException("The ticket does not exist");
         }
 
         Ticket ticket = optionalTicket.get();
 
-        // Check if the task already exists in the ticket
         boolean taskExists = ticket.getTasks().stream()
             .anyMatch(existingTask -> existingTask.getId().equals(taskId));
 
         if (taskExists) {
+            logger.error("❌ The task with id '{}' is already assigned to the ticket", taskId);
             throw new IllegalStateException("The task is already assigned to the ticket");
         }
 
-        // Fetch the task from the project service
+        logger.info("🔍 Fetching task with id: {}", taskId);
         String url = projectsServiceUrl + "/projects/task/" + taskId;
         TaskDto registeredTask = restTemplate.getForObject(url, TaskDto.class);
         if (registeredTask == null) {
+            logger.error("❌ The task with id '{}' does not exist", taskId);
             throw new IllegalStateException("The task does not exist");
         }
 
-        // Assign the ticket to the task in the project service
+        logger.info("🔗 Assigning ticket to task with id: {}", taskId);
         String projectApiUrl = projectsServiceUrl + "/projects/tasks/" + taskId + "/assignTicket";
         restTemplate.postForObject(projectApiUrl, ticket, String.class);
 
-        // Create a new Task entity and add it to the ticket
         Task task = new Task(registeredTask.getId(), registeredTask.getTitle(), ticket);
         ticket.getTasks().add(task);
 
         taskRepository.save(task);
-        return ticketRepository.save(ticket);
+        Ticket savedTicket = ticketRepository.save(ticket);
+        logger.info("✅ Task with id '{}' added to ticket with id '{}'", taskId, ticketId);
+        return savedTicket;
     }
 
     @Transactional
     public Ticket assignTicket(Long ticketId, AssignResourceDto resourceDto) {
-        // Find the ticket
+        logger.info("🔍 Assigning resource to ticket with id: {}", ticketId);
         Optional<Ticket> optionalTicket = ticketRepository.findById(ticketId);
         if (optionalTicket.isEmpty()) {
+            logger.error("❌ The ticket with id '{}' does not exist", ticketId);
             throw new IllegalStateException("The ticket does not exist");
         }
         Ticket ticket = optionalTicket.get();
 
-        // Find or create the resource
         Resource resource = resourceRepository.findById(resourceDto.getLegajo())
             .orElseGet(() -> {
+                logger.info("📦 Creating new resource with id: {}", resourceDto.getLegajo());
                 Resource newResource = new Resource();
                 newResource.setId(resourceDto.getLegajo());
                 newResource.setName(resourceDto.getNombre());
@@ -121,23 +137,24 @@ public class TicketService {
                 return resourceRepository.save(newResource);
             });
 
-        // Remove the ticket from its old resource if it exists
         if (ticket.getResource() != null) {
             ticket.getResource().removeTicket(ticket);
         }
 
-        // Set the new resource and add the ticket to the resource's ticket set
         resource.addTicket(ticket);
-
-        // Save the updated ticket and resource
         ticket.setResource(resource);
-        return ticketRepository.save(ticket);
+
+        ticket = ticketRepository.save(ticket);
+        logger.info("✅ Resource with id '{}' assigned to ticket with id '{}'", resourceDto.getLegajo(), ticketId);
+        return ticket;
     }
 
     @Transactional
     public Ticket finalizeTicket(Long ticketId) {
+        logger.info("🔍 Finalizing ticket with id: {}", ticketId);
         Optional<Ticket> ticket = ticketRepository.findById(ticketId);
         if (ticket.isEmpty()) {
+            logger.error("❌ The ticket with id '{}' does not exist", ticketId);
             throw new IllegalStateException("The ticket does not exist");
         }
         for (Task task : ticket.get().getTasks()) {
@@ -145,18 +162,22 @@ public class TicketService {
             String url = projectsServiceUrl + "/task/" + taskId;
             TaskDto taskDto = restTemplate.getForObject(url, TaskDto.class);
             if (taskDto == null) {
+                logger.error("❌ The task with id '{}' does not exist", taskId);
                 throw new IllegalStateException("The task does not exist");
             }
             if (!taskDto.getStatus().equals("Finalizado")) {
+                logger.error("❌ Task with id '{}' is not finalized", taskId);
                 throw new IllegalStateException("All tasks must be finalized before finalizing the ticket");
             }
         }
         ticket.get().setStatus("Finalizado");
-        return ticketRepository.save(ticket.get());
+        Ticket finalizedTicket = ticketRepository.save(ticket.get());
+        logger.info("✅ Ticket with id '{}' finalized successfully", ticketId);
+        return finalizedTicket;
     }
 
-    // Mapea los datos del CreateTikcetDTO a la entidad Ticket
     private Ticket mapTicket(CreateTicketDto createTicketDto, Ticket ticket) {
+        logger.info("🔄 Mapping CreateTicketDto to Ticket entity");
         ticket.setTitle(createTicketDto.getTitle());
         ticket.setSeverity(createTicketDto.getSeverity());
         ticket.setStartDate(createTicketDto.getStartDate());
@@ -172,14 +193,19 @@ public class TicketService {
     }
 
     public List<Ticket> getTickets() {
+        logger.info("🔍 Fetching all tickets");
         return ticketRepository.findAll();
     }
 
     public List<Task> getTasksByTicket(Long ticketId) {
+        logger.info("🔍 Fetching tasks for ticket with id: {}", ticketId);
         Optional<Ticket> optionalTicket = ticketRepository.findById(ticketId);
         if (optionalTicket.isEmpty()) {
+            logger.error("❌ The ticket with id '{}' does not exist", ticketId);
             throw new IllegalStateException("The ticket does not exist");
         }
-        return new ArrayList<>(optionalTicket.get().getTasks());
+        List<Task> tasks = new ArrayList<>(optionalTicket.get().getTasks());
+        logger.info("✅ Found {} tasks for ticket with id: {}", tasks.size(), ticketId);
+        return tasks;
     }
 }

@@ -1,6 +1,8 @@
 package com.edu.uba.support.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -50,8 +52,9 @@ public class Ticket {
     @Column
     private Long productId;
 
-    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference // to avoid infinite recursion when serializing the object
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL)
+    @JsonManagedReference // to avoid infinite recursion when serializing the object
+    @JsonIgnoreProperties({"ticket"})
     @ToString.Exclude // Exclude from Lombok's toString() to avoid circular reference
     private List<Task> tasks;
 

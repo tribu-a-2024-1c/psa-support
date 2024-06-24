@@ -82,7 +82,7 @@ public class ProductService {
 		return productDto;
 	}
 
-	@Transactional
+
 	public ProductVersion createProductVersion(Long productId, CreateProductVersionDto createProductVersionDto) {
 		logger.info("📦 Creating product version for product with id: {}", productId);
 		Optional<Product> productOptional = productRepository.findById(productId);
@@ -107,30 +107,39 @@ public class ProductService {
 		return productVersionRepository.save(productVersion);
 	}
 
+
 	@Transactional
-	public Product assignClientToProduct(Long productId, Long clientId) {
-		logger.info("🔗 Assigning client with id '{}' to product with id '{}'", clientId, productId);
+	public ProductDto assignClientToProduct(Long productId, ProductDto.ClientDto clientDto) {
+		logger.info("🔗 Assigning client to product with id '{}'", productId);
 		Optional<Product> productOptional = productRepository.findById(productId);
 		if (productOptional.isEmpty()) {
 			logger.error("❌ Product with id '{}' not found", productId);
 			throw new IllegalStateException("Product not found");
 		}
-		Optional<Client> clientOptional = clientRepository.findById(clientId);
-		if (clientOptional.isEmpty()) {
-			logger.error("❌ Client with id '{}' not found", clientId);
-			throw new IllegalStateException("Client not found");
-		}
 
 		Product product = productOptional.get();
-		Client client = clientOptional.get();
+		Client client = clientRepository.findById(clientDto.getId()).orElseGet(() -> {
+			Client newClient = new Client();
+			newClient.setId(clientDto.getId());
+			newClient.setCompanyName(clientDto.getRazonSocial());
+			newClient.setCuit(clientDto.getCuit());
+			return clientRepository.save(newClient);
+		});
+
 		product.getClients().add(client);
 		client.getProducts().add(product);
 
 		productRepository.save(product);
 		clientRepository.save(client);
 
-		logger.info("✅ Client with id '{}' assigned to product with id '{}'", clientId, productId);
-		return product;
+		// Map to ProductDto
+		String version = product.getVersions().isEmpty() ? null : product.getVersions().iterator().next().getVersion();
+		Set<ProductDto.ClientDto> clientDtos = product.getClients().stream().map(c ->
+				new ProductDto.ClientDto(c.getId(), c.getCompanyName(), c.getCuit())).collect(Collectors.toSet());
+		ProductDto productDto = new ProductDto(product.getId(), product.getName(), version, clientDtos);
+
+		logger.info("✅ Client assigned to product with id '{}'", productId);
+		return productDto;
 	}
 
 	@Transactional

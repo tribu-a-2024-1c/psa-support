@@ -13,6 +13,7 @@ import java.util.Objects;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "product_version")
 public class ProductVersion {
 
 	@Id

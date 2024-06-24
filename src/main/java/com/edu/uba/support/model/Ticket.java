@@ -20,7 +20,7 @@ public class Ticket {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 255)
+    @Column
     private String title;
 
     @Temporal(TemporalType.DATE)
@@ -29,16 +29,16 @@ public class Ticket {
     @Temporal(TemporalType.DATE)
     private Date endDate;
 
-    @Column(length = 255)
+    @Column
     private String status;
 
-    @Column(length = 255)
+    @Column
     private String type;
 
     @Lob
     private String description;
 
-    @Column(length = 255)
+    @Column
     private String priority;
 
     @ManyToOne

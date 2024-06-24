@@ -1,5 +1,6 @@
 package com.edu.uba.support.service;
 
+import com.edu.uba.support.dto.AssignResourceDto;
 import com.edu.uba.support.dto.CreateTicketDto;
 import com.edu.uba.support.dto.TaskDto;
 import com.edu.uba.support.model.Resource;
@@ -15,7 +16,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -95,34 +95,37 @@ public class TicketService {
         return ticketRepository.save(ticket.get());
     }
 
-		@Transactional
-		public Ticket assignTicket(Long ticketId, Long resourceId, String resourceName, String resourceLastname) {
-			// Find the ticket
-			Optional<Ticket> optionalTicket = ticketRepository.findById(ticketId);
-			if (optionalTicket.isEmpty()) {
-				throw new IllegalStateException("The ticket does not exist");
-			}
-			Ticket ticket = optionalTicket.get();
+    @Transactional
+    public Ticket assignTicket(Long ticketId, AssignResourceDto resourceDto) {
+        // Find the ticket
+        Optional<Ticket> optionalTicket = ticketRepository.findById(ticketId);
+        if (optionalTicket.isEmpty()) {
+            throw new IllegalStateException("The ticket does not exist");
+        }
+        Ticket ticket = optionalTicket.get();
 
-			// Find or create the resource
-			Resource resource = resourceRepository.findById(resourceId)
-					.orElseGet(() -> {
-						Resource newResource = new Resource(resourceId, resourceName, resourceLastname, new HashSet<>());
-						return resourceRepository.save(newResource);
-					});
+        // Find or create the resource
+        Resource resource = resourceRepository.findById(resourceDto.getLegajo())
+            .orElseGet(() -> {
+                Resource newResource = new Resource();
+                newResource.setId(resourceDto.getLegajo());
+                newResource.setName(resourceDto.getNombre());
+                newResource.setLastName(resourceDto.getApellido());
+                return resourceRepository.save(newResource);
+            });
 
-			// Remove the ticket from its old resource if it exists
-			if (ticket.getResource() != null) {
-				ticket.getResource().removeTicket(ticket);
-			}
+        // Remove the ticket from its old resource if it exists
+        if (ticket.getResource() != null) {
+            ticket.getResource().removeTicket(ticket);
+        }
 
-			// Set the new resource and add the ticket to the resource's ticket set
-			resource.addTicket(ticket);
+        // Set the new resource and add the ticket to the resource's ticket set
+        resource.addTicket(ticket);
 
-			// Save the updated ticket and resource
-			ticket.setResource(resource);
-			return ticketRepository.save(ticket);
-		}
+        // Save the updated ticket and resource
+        ticket.setResource(resource);
+        return ticketRepository.save(ticket);
+    }
 
 
     @Transactional

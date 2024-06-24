@@ -1,5 +1,6 @@
 package com.edu.uba.support.controller;
 
+import com.edu.uba.support.dto.AssignResourceDto;
 import com.edu.uba.support.dto.CreateTicketDto;
 import com.edu.uba.support.model.Ticket;
 import com.edu.uba.support.service.TicketService;
@@ -40,17 +41,17 @@ public class TicketController {
         }
     }
 
-    @PostMapping("{ticketId}/assign")
-    @Operation(summary = "Assign ticket", description = "This endpoint allows assigning a ticket to a resource")
+    @PostMapping("/{ticketId}/resource")
+    @Operation(summary = "Assign a resource to a ticket")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "The ticket was assigned successfully"),
-            @ApiResponse(responseCode = "400", description = "The ticket could not be assigned"),
+        @ApiResponse(responseCode = "200", description = "Resource assigned to ticket"),
+        @ApiResponse(responseCode = "404", description = "Ticket not found")
     })
-    public ResponseEntity<Ticket> assignTicket(@PathVariable Long ticketId, Long resourceId, String resourceName, String resourceLastname) {
+    public ResponseEntity<Ticket> assignResourceToTicket(@PathVariable Long ticketId, @RequestBody AssignResourceDto resourceDto) {
         try {
-            Ticket ticket = ticketService.assignTicket(ticketId, resourceId, resourceName, resourceLastname);
-            return ResponseEntity.status(HttpStatus.OK).body(ticket);
-        } catch (IllegalStateException e) {
+            Ticket updatedTicket = ticketService.assignTicket(ticketId, resourceDto);
+            return ResponseEntity.ok(updatedTicket);
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }

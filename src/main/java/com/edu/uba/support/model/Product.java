@@ -25,12 +25,12 @@ public class Product {
 	@Column
 	private String name;
 
-	@ManyToMany(mappedBy = "products")
+	@ManyToMany(mappedBy = "products", fetch = FetchType.LAZY)
 	@JsonBackReference // to avoid infinite recursion when serializing the object
 	@JsonIgnoreProperties({"products"})
 	private Set<Client> clients = new HashSet<>();
 
-	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	@JsonBackReference // to avoid infinite recursion when serializing the object
 	@JsonIgnoreProperties({"product"})
 	@ToString.Exclude // Exclude from Lombok's toString() to avoid circular reference

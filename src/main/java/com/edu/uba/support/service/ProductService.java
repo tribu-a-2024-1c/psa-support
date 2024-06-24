@@ -53,7 +53,7 @@ public class ProductService {
 			productVersion.setVersion(version);
 			productVersion.setProduct(product);
 			productVersionRepository.save(productVersion);
-			logger.info("🔗 Created version '{}' for product '{}'", version, product.getName());
+			product.getVersions().add(productVersion);
 		}
 
 		// Assign clients to product
@@ -68,6 +68,9 @@ public class ProductService {
 		).collect(Collectors.toSet());
 
 		product.setClients(clients);
+		for (Client client : clients) {
+			client.getProducts().add(product);
+		}
 		product = productRepository.save(product);
 
 		// Map to ProductDto
@@ -79,7 +82,6 @@ public class ProductService {
 		return productDto;
 	}
 
-
 	@Transactional
 	public ProductVersion createProductVersion(Long productId, CreateProductVersionDto createProductVersionDto) {
 		logger.info("📦 Creating product version for product with id: {}", productId);
@@ -88,12 +90,21 @@ public class ProductService {
 			logger.error("❌ Product with id '{}' not found", productId);
 			throw new IllegalStateException("Product not found");
 		}
+		Product product = productOptional.get();
+
+		// Check if the version already exists for the product
+		boolean versionExists = product.getVersions().stream()
+				.anyMatch(v -> v.getVersion().equals(createProductVersionDto.getVersion()));
+		if (versionExists) {
+			throw new IllegalStateException("The version already exists for this product");
+		}
+
 		ProductVersion productVersion = new ProductVersion();
 		productVersion.setVersion(createProductVersionDto.getVersion());
-		productVersion.setProduct(productOptional.get());
-		ProductVersion savedProductVersion = productVersionRepository.save(productVersion);
-		logger.info("✅ Product version '{}' created successfully for product id: {}", savedProductVersion.getVersion(), productId);
-		return savedProductVersion;
+		productVersion.setProduct(product);
+		product.getVersions().add(productVersion);
+		logger.info("✅ Product version '{}' created successfully for product id: {}", productVersion.getVersion(), productId);
+		return productVersionRepository.save(productVersion);
 	}
 
 	@Transactional
@@ -137,7 +148,6 @@ public class ProductService {
 		logger.info("✅ Fetched {} products", productDtos.size());
 		return productDtos;
 	}
-
 
 	public List<ProductVersion> getProductVersions(Long productId) {
 		logger.info("🔍 Fetching all versions for product with id: {}", productId);

@@ -58,7 +58,7 @@ public class TicketController {
     }
 
     // Endpoint para asignar tareas ya existentes (ticketId, tareaId) Verificar si la tarea existe en la api de proyectos y actualizarla la tarea para relacionarla con el ticket
-    @PostMapping("{ticketId}/addTask")
+    @PostMapping("{ticketId}/task")
     @Operation(summary = "Add task to ticket", description = "This endpoint allows adding a task to a ticket")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "The task was added successfully"),

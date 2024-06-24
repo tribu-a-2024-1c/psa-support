@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.Date;
 import java.util.List;
@@ -51,13 +52,16 @@ public class Ticket {
 
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference // to avoid infinite recursion when serializing the object
+    @ToString.Exclude // Exclude from Lombok's toString() to avoid circular reference
     private List<Task> tasks;
 
     @ManyToOne
     @JoinColumn(name = "Priority", insertable = false, updatable = false)
+    @ToString.Exclude // Exclude from Lombok's toString() to avoid circular reference
     private Priority priority;
 
     @ManyToOne
     @JoinColumn(name = "Resource", insertable = false)
+    @ToString.Exclude // Exclude from Lombok's toString() to avoid circular reference
     private Resource resource;
 }

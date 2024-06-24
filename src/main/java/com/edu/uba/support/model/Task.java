@@ -33,5 +33,6 @@ public class Task {
 	@ManyToOne
 	@JoinColumn(name = "ticket_id")
 	@JsonManagedReference // to avoid infinite recursion when serializing the object
+	@ToString.Exclude // Exclude from Lombok's toString() to avoid circular reference
 	private Ticket ticket;
 }

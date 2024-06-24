@@ -63,8 +63,23 @@ public class TicketService {
         Ticket ticket = mapTicket(createTicketDto, new Ticket());
         ticket.setProductVersion(productVersion.get());
 
+        // Assign resource if provided
+        if (createTicketDto.getResource() != null) {
+            Resource resource = resourceRepository.findById(createTicketDto.getResource().getLegajo())
+                .orElseGet(() -> {
+                    logger.info("📦 Creating new resource with id: {}", createTicketDto.getResource().getLegajo());
+                    Resource newResource = new Resource();
+                    newResource.setId(createTicketDto.getResource().getLegajo());
+                    newResource.setName(createTicketDto.getResource().getNombre());
+                    newResource.setLastName(createTicketDto.getResource().getApellido());
+                    return resourceRepository.save(newResource);
+                });
+            ticket.setResource(resource);
+        }
+
         ticket = ticketRepository.save(ticket); // Save the ticket to generate its ID
 
+        // Assign tasks if provided
         if (createTicketDto.getTaskIds() != null && !createTicketDto.getTaskIds().isEmpty()) {
             for (Long taskId : createTicketDto.getTaskIds()) {
                 logger.info("🔍 Fetching task with id: {}", taskId);
@@ -88,6 +103,7 @@ public class TicketService {
         logger.info("✅ Ticket created successfully with id: {}", ticket.getId());
         return ticket;
     }
+
 
     @Transactional
     public Ticket addTaskToTicket(Long ticketId, Long taskId) {

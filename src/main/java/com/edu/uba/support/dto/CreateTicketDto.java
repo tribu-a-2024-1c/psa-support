@@ -19,6 +19,15 @@ public class CreateTicketDto {
     private String description;
     private String priority;  // enum for priority on frontend
     private Long productVersionId;
-    private Long resourceId;
+    private Resource resource;
     private List<Long> taskIds;
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Resource {
+        private long legajo;
+        private String nombre;
+        private String apellido;
+    }
 }

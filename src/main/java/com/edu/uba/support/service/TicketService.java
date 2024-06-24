@@ -3,9 +3,11 @@ package com.edu.uba.support.service;
 import com.edu.uba.support.dto.AssignResourceDto;
 import com.edu.uba.support.dto.CreateTicketDto;
 import com.edu.uba.support.dto.TaskDto;
+import com.edu.uba.support.model.ProductVersion;
 import com.edu.uba.support.model.Resource;
 import com.edu.uba.support.model.Task;
 import com.edu.uba.support.model.Ticket;
+import com.edu.uba.support.repository.ProductVersionRepository;
 import com.edu.uba.support.repository.ResourceRepository;
 import com.edu.uba.support.repository.TaskRepository;
 import com.edu.uba.support.repository.TicketRepository;
@@ -31,14 +33,16 @@ public class TicketService {
     private final String projectsServiceUrl;
     private final TaskRepository taskRepository;
     private final ResourceRepository resourceRepository;
+    private final ProductVersionRepository productVersionRepository;
 
     @Autowired
-    public TicketService(TicketRepository ticketRepository, RestTemplate restTemplate, @Value("${projects.api.url}") String projectsServiceUrl, TaskRepository taskRepository, ResourceRepository resourceRepository) {
+    public TicketService(TicketRepository ticketRepository, RestTemplate restTemplate, @Value("${projects.api.url}") String projectsServiceUrl, TaskRepository taskRepository, ResourceRepository resourceRepository, ProductVersionRepository productVersionRepository) {
         this.ticketRepository = ticketRepository;
         this.restTemplate = restTemplate;
         this.projectsServiceUrl = projectsServiceUrl;
         this.taskRepository = taskRepository;
         this.resourceRepository = resourceRepository;
+        this.productVersionRepository = productVersionRepository;
     }
 
     @Transactional
@@ -50,7 +54,15 @@ public class TicketService {
             throw new IllegalStateException("A ticket with that title already exists");
         }
 
+        Optional<ProductVersion> productVersion = productVersionRepository.findById(createTicketDto.getProductVersionId());
+        if (productVersion.isEmpty()) {
+            logger.error("❌ Product version with id '{}' does not exist", createTicketDto.getProductVersionId());
+            throw new IllegalStateException("Product version does not exist");
+        }
+
         Ticket ticket = mapTicket(createTicketDto, new Ticket());
+        ticket.setProductVersion(productVersion.get());
+
         ticket = ticketRepository.save(ticket); // Save the ticket to generate its ID
 
         if (createTicketDto.getTaskIds() != null && !createTicketDto.getTaskIds().isEmpty()) {
@@ -179,15 +191,12 @@ public class TicketService {
     private Ticket mapTicket(CreateTicketDto createTicketDto, Ticket ticket) {
         logger.info("🔄 Mapping CreateTicketDto to Ticket entity");
         ticket.setTitle(createTicketDto.getTitle());
-        ticket.setSeverity(createTicketDto.getSeverity());
         ticket.setStartDate(createTicketDto.getStartDate());
         ticket.setEndDate(createTicketDto.getEndDate());
         ticket.setStatus(createTicketDto.getStatus());
         ticket.setType(createTicketDto.getType());
         ticket.setDescription(createTicketDto.getDescription());
-        ticket.setPriorityId(createTicketDto.getPriorityId());
-        ticket.setClientId(createTicketDto.getClientId());
-        ticket.setProductId(createTicketDto.getProductId());
+        ticket.setPriority(createTicketDto.getPriority());
 
         return ticket;
     }

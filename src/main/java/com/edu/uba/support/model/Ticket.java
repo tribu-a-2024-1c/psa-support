@@ -1,8 +1,6 @@
 package com.edu.uba.support.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,9 +23,6 @@ public class Ticket {
     @Column(length = 255)
     private String title;
 
-    @Column(length = 255)
-    private String severity;
-
     @Temporal(TemporalType.DATE)
     private Date startDate;
 
@@ -43,27 +38,20 @@ public class Ticket {
     @Lob
     private String description;
 
-    @Column
-    private Long priorityId;
+    @Column(length = 255)
+    private String priority;
 
-    @Column
-    private Long clientId;
+    @ManyToOne
+    @JoinColumn(name = "product_version_id")
+    private ProductVersion productVersion;
 
-    @Column
-    private Long productId;
-
-    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL)
-    @JsonIgnoreProperties({"ticket"})
-    @ToString.Exclude // Exclude from Lombok's toString() to avoid circular reference
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
+    @ToString.Exclude
     private List<Task> tasks;
 
     @ManyToOne
-    @JoinColumn(name = "Priority", insertable = false, updatable = false)
-    @ToString.Exclude // Exclude from Lombok's toString() to avoid circular reference
-    private Priority priority;
-
-    @ManyToOne
     @JoinColumn(name = "Resource", insertable = false)
-    @ToString.Exclude // Exclude from Lombok's toString() to avoid circular reference
+    @ToString.Exclude
     private Resource resource;
 }
